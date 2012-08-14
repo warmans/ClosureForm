@@ -11,8 +11,12 @@ namespace ClosureForm {
 
         private $_name;
         private $_attributes = array();
+
         private $_rowTemplate;
+        private $_fieldErrorTemplate;
+
         private $_fields = array();
+        private $_hiddenFields = array();
         private $_internal_field_prefix = '_internal_';
 
         public function __construct($name='generic-form', array $attributes=array('method'=>'POST'))
@@ -20,6 +24,7 @@ namespace ClosureForm {
             $this->_name = $name;
             $this->_attributes = $attributes;
             $this->_rowTemplate = $this->_getDefaultRowTemplate();
+            $this->_fieldErrorTemplate = $this->_getFieldErrorTemplate();
 
             $this->addHiddenField($this->_internal_field_prefix.$name)->attributes(array('value'=>'1'));
         }
@@ -34,11 +39,36 @@ namespace ClosureForm {
             return FALSE;
         }
 
-        private function _getDefaultRowTemplate()
+        public function isValid()
         {
+            if(!$this->isSubmitted()){
+                return true;
+            }
+            $valid = true;
+            foreach($this->getFields() as $field)
+            {
+                if($valid == true){
+                    $valid = $field->isValid();
+                }
+            }
+            return $valid;
+        }
+
+        private function _getDefaultRowTemplate($addCls=array())
+        {
+            return function($innerHtml, array $addCls=array())
+            {
+                return '<div class="form-row '.implode(" ",$addCls).'">'.$innerHtml.'</div>';
+            };
+        }
+        public function _getFieldErrorTemplate(){
             return function(FieldProxy $field)
             {
-                return '<div class="sf-row">'.$field->render().'</div>';
+                $output = array();
+                foreach($field->getErrors() as $errorText){
+                    $output[] = '<div class="error-msg">'.$errorText.'</div>';
+                }
+                return (count($output)) ? '<div class="field-errors">'.implode(PHP_EOL, $output).'</div>' : '';
             };
         }
 
@@ -105,7 +135,10 @@ namespace ClosureForm {
                     return '<input type="'.$type.'" name="'.$field->getName().'" '.$field->getAttributeString().'/>';
                 }
             );
-
+            if($type == 'hidden')
+            {
+                $this->_hiddenFields[] = $name;
+            }
             return $this->_addField($name, $field);
         }
 
@@ -135,12 +168,21 @@ namespace ClosureForm {
         public function render()
         {
             $rowTemplate = $this->_rowTemplate;
+            $fieldErrorTemplate = $this->_fieldErrorTemplate;
 
             $output = array('<form name="'.$this->getName().'" '.$this->getAttributeString($this->_attributes).'>');
-            foreach($this->getFields() as $field){
-                $output[] = $rowTemplate($field);
+            foreach($this->getFields() as $field)
+            {
+                if(in_array($field->getName(), $this->_hiddenFields))
+                {
+                    $output[] = $field->render(); //don't render row or error data for a hidden field
+                }
+                else {
+                    $output[] = $rowTemplate($field->render().$fieldErrorTemplate($field), (count($field->getErrors()) ? array('error-row') : array()));
+                }
             }
             $output[] = '</form>';
+
             return (string)implode(PHP_EOL, $output);
         }
 

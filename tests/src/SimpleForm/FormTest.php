@@ -50,6 +50,18 @@ class FormTest extends \PHPUnit_Framework_TestCase {
         $this->assertContains('<input type="text" name="text-field-1" />', $this->_form->render());
     }
 
+    /**
+    * @group current
+    */
+    public function testTextFieldRendererWithError()
+    {
+        $this->_form->addTextField('text-field-1')->validator(function($field){ return 'ERROR!'; });
+        $this->_fakeFormSubmit($this->_form);
+        $this->_form->isValid();
+        $this->assertContains('<div class="error-msg"', $this->_form->render());
+    }
+
+
    /**
      * @group current
      * @expectedException RuntimeException
