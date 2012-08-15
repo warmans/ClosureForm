@@ -225,4 +225,60 @@ class FormTest extends \PHPUnit_Framework_TestCase {
         $this->assertContains('checked="checked"', $field->render());
     }
 
+    /**
+    * @group current
+    */
+    public function testFormIsMakedInvalidWithoutCallingIsValid()
+    {
+        $field = $this->_form->addTextField('t')->validator(function($value){
+            return 'error!';
+        });
+
+        $this->_fakeFormSubmit($this->_form);
+
+        $this->assertContains('error!', $this->_form->render());
+    }
+
+   /**
+    * @group current
+    */
+    public function testMultipleIsValidCallsReturnsCachedResult()
+    {
+        $called = 0;
+        $validator = function($value) use (&$called){
+            $called++;
+            return true;
+        };
+
+        $this->_form->addTextField('t')->validator($validator);
+        $this->_fakeFormSubmit($this->_form);
+
+        $this->_form->isValid();
+        $this->_form->isValid();
+        $this->_form->isValid();
+
+        $this->assertEquals(1, $called);
+    }
+
+    /**
+    * @group current
+    */
+    public function testSelectBoxRenderer()
+    {
+        $field = $this->_form->addSelectField('sel', array('yes'=>'Yes', 'no'=>'No'));
+        $output = $field->render();
+        $this->assertContains('<select name="sel" >', $output);
+        $this->assertContains('<option value="yes" >Yes</option>', $output);
+    }
+
+    /**
+    * @group current
+    */
+    public function testSelectBoxSelectedAttribute()
+    {
+        $field = $this->_form->addSelectField('sel', array('yes'=>'Yes', 'no'=>'No'))->attributes(array('value'=>'no'));
+        $this->_fakeFormSubmit($this->_form);
+        $this->assertContains('<option value="no" selected="selected">No</option>', $field->render());
+    }
+
 }

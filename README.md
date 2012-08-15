@@ -6,6 +6,8 @@ Incomplete Form generation library with heavy use of closures to achieve flexibi
 E.g.
 
 ```php
+<?php
+
 $form = new \ClosureForm\Form('my-form', array('method'=>'POST');
 $form->addTextField('foo')
     ->validator(function($value) {
@@ -18,5 +20,6 @@ if($form->isSubmitted() && $form->isValid())
     //do something
 }
 
-echo $form->render();
+echo $form->render(); //output form including any errors
+
 ```

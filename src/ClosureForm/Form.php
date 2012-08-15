@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Form
  *
@@ -11,20 +10,17 @@ namespace ClosureForm {
 
         private $_name;
         private $_attributes = array();
-
-        private $_rowTemplate;
-        private $_fieldErrorTemplate;
-
         private $_fields = array();
         private $_hiddenFields = array();
+        private $_rowTemplate;
         private $_internal_field_prefix = '_internal_';
+        private $_valid = NULL;
 
         public function __construct($name='generic-form', array $attributes=array('method'=>'POST'))
         {
             $this->_name = $name;
             $this->_attributes = $attributes;
             $this->_rowTemplate = $this->_getDefaultRowTemplate();
-            $this->_fieldErrorTemplate = $this->_getFieldErrorTemplate();
 
             $this->addHiddenField($this->_internal_field_prefix.$name)->attributes(array('value'=>'1'));
         }
@@ -42,33 +38,30 @@ namespace ClosureForm {
         public function isValid()
         {
             if(!$this->isSubmitted()){
-                return true;
+                return TRUE;
             }
-            $valid = true;
+
+            //don't re-validate if validation has already run once
+            if($this->_valid !== NULL)
+            {
+                return $this->_valid;
+            }
+
+            $this->_valid = true;
             foreach($this->getFields() as $field)
             {
-                if($valid == true){
-                    $valid = $field->isValid();
+                if($this->_valid == true){
+                    $this->_valid = $field->isValid();
                 }
             }
-            return $valid;
+            return $this->_valid;
         }
 
-        private function _getDefaultRowTemplate($addCls=array())
+        private function _getDefaultRowTemplate()
         {
-            return function($innerHtml, array $addCls=array())
-            {
-                return '<div class="form-row '.implode(" ",$addCls).'">'.$innerHtml.'</div>';
-            };
-        }
-        public function _getFieldErrorTemplate(){
             return function(FieldProxy $field)
             {
-                $output = array();
-                foreach($field->getErrors() as $errorText){
-                    $output[] = '<div class="error-msg">'.$errorText.'</div>';
-                }
-                return (count($output)) ? '<div class="field-errors">'.implode(PHP_EOL, $output).'</div>' : '';
+                return '<div class="form-row '.($field->isValid() ? '' : 'error-row').'">'.$field->render().'</div>';
             };
         }
 
@@ -127,6 +120,27 @@ namespace ClosureForm {
             return $field;
         }
 
+        public function addSelectField($name, array $keyVals)
+        {
+            $form = $this;
+            $field = new FieldProxy($this, $name);
+            $field->template(
+                function(FieldProxy $field) use ($keyVals, $form){
+                    $output = array();
+                    $value = ($form->isSubmitted()) ? $field->getSubmittedValue() : $field->extractAttribute('value');
+                    $output[] = '<select name="'.$field->getName().'" '.$field->getAttributeString().'>';
+                    foreach($keyVals as $submitValue=>$displayValue)
+                    {
+                        $selected = ($value == $submitValue) ? 'selected="selected"' : '';
+                        $output[] = '<option value="'.$submitValue.'" '.$selected.'>'.$displayValue.'</option>';
+                    }
+                    $output[] = '</select>';
+                    return  implode(PHP_EOL, $output);
+                }
+            );
+            return $this->_addField($name, $field);
+        }
+
         public function addInputField($type, $name)
         {
             $field = new FieldProxy($this, $name);
@@ -168,17 +182,20 @@ namespace ClosureForm {
         public function render()
         {
             $rowTemplate = $this->_rowTemplate;
-            $fieldErrorTemplate = $this->_fieldErrorTemplate;
+
+            //always validate
+            $this->isValid();
 
             $output = array('<form name="'.$this->getName().'" '.$this->getAttributeString($this->_attributes).'>');
             foreach($this->getFields() as $field)
             {
                 if(in_array($field->getName(), $this->_hiddenFields))
                 {
-                    $output[] = $field->render(); //don't render row or error data for a hidden field
+                    //don't render row or errors for a hidden field
+                    $output[] = $field->errorTemplate(function($value){ return; })->render();
                 }
                 else {
-                    $output[] = $rowTemplate($field->render().$fieldErrorTemplate($field), (count($field->getErrors()) ? array('error-row') : array()));
+                    $output[] = $rowTemplate($field);
                 }
             }
             $output[] = '</form>';
