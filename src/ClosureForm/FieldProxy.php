@@ -9,6 +9,8 @@ namespace ClosureForm {
         private $_errorTemplate;
 
         private $_fieldName;
+        private $_fieldLabel;
+
         private $_attributes = array();
         private $_validator;
 
@@ -41,6 +43,12 @@ namespace ClosureForm {
             return $this;
         }
 
+        public function label($label)
+        {
+            $this->_fieldLabel = $label;
+            return $this;
+        }
+
         public function attribute($name, $value){
             $this->_attributes[$name] = $value;
             return $this;
@@ -67,6 +75,11 @@ namespace ClosureForm {
         public function getName()
         {
             return $this->_fieldName;
+        }
+
+        public function getLabel()
+        {
+            return $this->_fieldLabel;
         }
 
         public function getSubmittedValue()
@@ -136,9 +149,20 @@ namespace ClosureForm {
             return $this->_errors;
         }
 
+        public function addError($error){
+            $this->_errors[] = $error;
+            return $this;
+        }
+
         public function render()
         {
-            $this->isValid();//always validate
+            //always validate
+            $this->isValid();
+
+            //repopulate submitted fields
+            if($this->_form->isSubmitted()){
+                $this->attribute('value', $this->getSubmittedValue());
+            }
 
             $templateRenderer = $this->_fieldTemplate;
             $errorRenderer = ($this->_errorTemplate) ?: $this->_getDefaultErrorTemplate();

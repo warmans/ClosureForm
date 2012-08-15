@@ -10,10 +10,10 @@ E.g.
 
 $form = new \ClosureForm\Form('my-form', array('method'=>'POST');
 $form->addTextField('foo')
+    ->attributes(array('class'=>'required'))
     ->validator(function($value) {
          return ($value) ? NULL : 'Error: Required Field';
-    })
-    ->attributes(array('class'=>'required'));
+    });
 
 if($form->isSubmitted() && $form->isValid())
 {

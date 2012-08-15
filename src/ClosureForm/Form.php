@@ -15,6 +15,7 @@ namespace ClosureForm {
         private $_rowTemplate;
         private $_internal_field_prefix = '_internal_';
         private $_valid = NULL;
+        private $_generalErrors = array();
 
         public function __construct($name='generic-form', array $attributes=array('method'=>'POST'))
         {
@@ -41,6 +42,11 @@ namespace ClosureForm {
                 return TRUE;
             }
 
+            //general errors cause validation to fail after isValid has been run
+            if(count($this->_generalErrors)){
+                $this->_valid = FALSE;
+            }
+
             //don't re-validate if validation has already run once
             if($this->_valid !== NULL)
             {
@@ -54,6 +60,7 @@ namespace ClosureForm {
                     $this->_valid = $field->isValid();
                 }
             }
+
             return $this->_valid;
         }
 
@@ -97,6 +104,18 @@ namespace ClosureForm {
             return $this->addInputField('password', $name);
         }
 
+        //TODO: When buttons have been implemented I think this can be removed
+        public function addSubmitField($name)
+        {
+            return $this->addInputField('submit', $name);
+        }
+
+        //TODO: Add button - can we do $name, Closure $handler? maybe requires buttons to not be standard field proxies
+        public function addButton($name)
+        {
+
+        }
+
         public function addCheckboxField($name){
             $form = $this;
             $field = $this->addInputField('checkbox', $name);
@@ -115,7 +134,7 @@ namespace ClosureForm {
                         }
                     }
                 }
-                return '<input type="checkbox" name="'.$field->getName().'" '.$field->getAttributeString().'/>';
+                return '<label><input type="checkbox" name="'.$field->getName().'" '.$field->getAttributeString().'/> '.$field->getLabel().' </label>';
             });
             return $field;
         }
@@ -128,7 +147,7 @@ namespace ClosureForm {
                 function(FieldProxy $field) use ($keyVals, $form){
                     $output = array();
                     $value = ($form->isSubmitted()) ? $field->getSubmittedValue() : $field->extractAttribute('value');
-                    $output[] = '<select name="'.$field->getName().'" '.$field->getAttributeString().'>';
+                    $output[] = '<label>'.$field->getLabel().'</label><select name="'.$field->getName().'" '.$field->getAttributeString().'>';
                     foreach($keyVals as $submitValue=>$displayValue)
                     {
                         $selected = ($value == $submitValue) ? 'selected="selected"' : '';
@@ -145,8 +164,10 @@ namespace ClosureForm {
         {
             $field = new FieldProxy($this, $name);
             $field->template(
-                function(FieldProxy $field) use ($type){
-                    return '<input type="'.$type.'" name="'.$field->getName().'" '.$field->getAttributeString().'/>';
+                function(FieldProxy $field) use ($type)
+                {
+                    $label = ($type == 'hidden') ? '' : '<label>'.$field->getLabel().'</label>';
+                    return $label.'<input type="'.$type.'" name="'.$field->getName().'" '.$field->getAttributeString().'/>';
                 }
             );
             if($type == 'hidden')
@@ -162,7 +183,7 @@ namespace ClosureForm {
             $field->template(
                 function(FieldProxy $field){
                     $value = $field->extractAttribute('value');
-                    return '<textarea name="'.$field->getName().'" '.$field->getAttributeString().'>'.$value.'</textarea>';
+                    return '<label>'.$field->getLabel().'</label><textarea name="'.$field->getName().'" '.$field->getAttributeString().'>'.$value.'</textarea>';
                 }
             );
             return $this->_addField($name, $field);
@@ -179,6 +200,26 @@ namespace ClosureForm {
             return $field;
         }
 
+        public function addError($errorMsg, $affectsField=NULL)
+        {
+            if($affectsField)
+            {
+                if($field = $this->getField($affectsField)){
+                    $field->addError($errorMsg);
+                    return;
+                }
+            }
+
+            //error not related to any field in particular
+            $this->_addGeneralError($errorMsg);
+        }
+
+        private function _addGeneralError($errorMsg)
+        {
+            $this->_generalErrors[] = $errorMsg;
+            return $this;
+        }
+
         public function render()
         {
             $rowTemplate = $this->_rowTemplate;
@@ -187,6 +228,14 @@ namespace ClosureForm {
             $this->isValid();
 
             $output = array('<form name="'.$this->getName().'" '.$this->getAttributeString($this->_attributes).'>');
+
+            //generic errors
+            foreach($this->_generalErrors as $error)
+            {
+                $output[] = '<div class="general-error">'.$error.'</div>';
+            }
+
+            //fields
             foreach($this->getFields() as $field)
             {
                 if(in_array($field->getName(), $this->_hiddenFields))
