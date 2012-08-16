@@ -49,9 +49,9 @@ $form->addButton('login')->label('or Login')->action(function($form){
 
 /* process form if submitted */
 
-if($form->handleSubmission())
+if($form->handleButtonActions())
 {
-    echo 'Thank You!';
+    echo 'Thank You, '.$form->getField('email')->getSubmittedValue();
 }
 
 /* output form */

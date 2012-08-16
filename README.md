@@ -1,9 +1,9 @@
 ClosureForm
 ===========
 
-Incomplete Form generation library with heavy use of closures to achieve flexibility in final rendering.
+Form generation library with heavy use of closures for... everything.
 
-E.g.
+Examples can be found in the tests directory along with a set of unit tests (coverage 99%+).
 
 ```php
 <?php
@@ -58,9 +58,9 @@ $form->addButton('login')->label('or Login')->action(function($form){
 
 /* process form using the relevant button action if submitted */
 
-if($form->handleSubmission())
+if($form->handleButtonActions())
 {
-    echo 'Thank You!';
+    echo 'Thank You, '.$form->getField('email')->getSubmittedValue();
 }
 
 /* output form */
@@ -68,3 +68,11 @@ if($form->handleSubmission())
 echo $form->render();
 
 ```
+
+TODOs
+===========
+- CSRF Protection (not easy when most people use their own session handler). Session save handler could be passed as optional closure - otherwise native PHP session handling can be used.
+- Radio Buttons
+- Field Arrays (e.g. name[])
+- Fieldsets
+- Filters
