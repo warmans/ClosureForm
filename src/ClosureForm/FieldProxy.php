@@ -1,6 +1,12 @@
 <?php
 namespace ClosureForm {
-
+    /**
+     * FieldProxy was initially used to provide a fluent interface for fields ultimately proxying the Form class.
+     * At this point they no longer really fit the GoF taxonomy for a Proxy because all the field behaviour was moved
+     * to the Field class by way of Closures.
+     *
+     * @author warmans
+     */
     class FieldProxy {
 
         private $_form;

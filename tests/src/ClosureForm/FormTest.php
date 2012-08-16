@@ -281,4 +281,93 @@ class FormTest extends \PHPUnit_Framework_TestCase {
         $this->assertContains('<option value="no" selected="selected">No</option>', $field->render());
     }
 
+
+    /**
+    * @group current
+    */
+    public function testAddExternalError()
+    {
+        $field = $this->_form->addTextField('tb');
+        $this->_form->addError('External Error', 'tb');
+        $this->_fakeFormSubmit($this->_form);
+        $this->assertContains('External Error', $field->render());
+    }
+
+    /**
+    * @group current
+    */
+    public function testAddExternalErrorToField()
+    {
+        $field = $this->_form->addTextField('tb');
+        $this->_form->addError('General External Error');
+        $this->_fakeFormSubmit($this->_form);
+        $this->assertContains('<div class="general-error">General External Error</div>', $this->_form->render());
+    }
+
+    /**
+    * @group current
+    */
+    public function testAddExternalErrorToFieldIfFieldNotFound()
+    {
+        $field = $this->_form->addTextField('tb');
+        $this->_form->addError('External Error For Unknown Field', 'foobarbaz');
+        $this->_fakeFormSubmit($this->_form);
+        $this->assertContains('<div class="general-error">External Error For Unknown Field</div>', $this->_form->render());
+    }
+
+    /**
+    * @group current
+    */
+    public function testAddButtonRendersButtonToForm()
+    {
+        $field = $this->_form->addButton('submit');
+        $this->assertContains('<button name="submit" ></button>', $this->_form->render());
+    }
+
+    /**
+    * @group current
+    */
+    public function testTriggerButtonAction()
+    {
+        $triggered = 0;
+
+        $this->_form->addButton('submit')->action(function($form) use (&$triggered){
+            $triggered++;
+        });
+
+        $this->_fakeFormSubmit($this->_form);
+        $_POST['submit'] = 'submit';
+        $this->_form->handleButtonActions();
+
+        $this->assertEquals(1, $triggered);
+    }
+
+    /**
+    * @group current
+    */
+    public function testUnknownButtonPressed()
+    {
+        $triggered = 0;
+
+        $this->_form->addButton('submit')->action(function($form) use (&$triggered){
+            $triggered++;
+        });
+
+        $this->_fakeFormSubmit($this->_form);
+        $_POST['foobarbaz'] = 'submit'; //this isn't a button
+        $this->_form->handleButtonActions();
+
+        $this->assertEquals(0, $triggered);
+    }
+
+    /**
+    * @group current
+    * @expectedException RuntimeException
+    */
+    public function testAddButtonWithNoName()
+    {
+        $this->_form->addButton();
+    }
+
+
 }

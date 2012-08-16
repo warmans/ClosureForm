@@ -30,17 +30,28 @@ $form->addPasswordField('confirm_password')->label('Confirm Password')->validato
 
 /* submit */
 
-$form->addSubmitField('submit')->attribute('value', 'Login');
+$form->addButton('submit')->label('Submit')->action(function($form){
+    if($form->isValid()){
+        if(rand(1, 10) <= 5){
+            $form->addError('We have decided to randomly reject your registration. Sorry!');
+            return false;
+        } else {
+            return true;
+        }
+    }
+});
+
+$form->addButton('login')->label('or Login')->action(function($form){
+    //dont't validate - we don't care if the form is valid
+    header('Location:/some-login-page.php');
+    exit();
+});
 
 /* process form if submitted */
 
-if($form->isSubmitted() && $form->isValid())
+if($form->handleSubmission())
 {
-    if(rand(1, 10) <=5 ){
-        $form->addError('We have decided to randomly reject your resignation. Sorry!');
-    } else {
-        echo 'Thank you';
-    }
+    echo 'Thank You!';
 }
 
 /* output form */

@@ -82,7 +82,7 @@ class FieldProxyTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue($fieldProxy->isValid());
         $this->assertTrue(count($fieldProxy->getErrors()) == 0);
     }
-    
+
     /**
      * @group current
      */
@@ -90,6 +90,15 @@ class FieldProxyTest extends \PHPUnit_Framework_TestCase {
     {
         $fieldProxy = new \ClosureForm\FieldProxy($this->_getMockForm(), 'test-field');
         $this->assertNull($fieldProxy->getSubmittedValue());
+    }
+
+    /**
+     * @group current
+     */
+    public function testSetThenGetLabel()
+    {
+        $fieldProxy = new \ClosureForm\FieldProxy($this->_getMockForm(), 'test-field');
+        $this->assertEquals('my label', $fieldProxy->label('my label')->getLabel());
     }
 
 }

@@ -1,16 +1,16 @@
 <?php
-/**
- * Form
- *
- * @author Stefan
- */
 namespace ClosureForm {
-
+    /**
+     * ClosureForm Form. The only component that the user is expected to use directly.
+     *
+     * @author warmans
+     */
     class Form {
 
         private $_name;
         private $_attributes = array();
         private $_fields = array();
+        private $_buttons = array();
         private $_hiddenFields = array();
         private $_rowTemplate;
         private $_internal_field_prefix = '_internal_';
@@ -26,6 +26,11 @@ namespace ClosureForm {
             $this->addHiddenField($this->_internal_field_prefix.$name)->attributes(array('value'=>'1'));
         }
 
+        /**
+         * Check if the form has been submitted. This is based on the presence of an auto-generated
+         * field in the in the relevant superglobal (POST, GET).
+         * @return boolean
+         */
         public function isSubmitted()
         {
             $submittedValues = $this->getSuperglobal();
@@ -36,6 +41,10 @@ namespace ClosureForm {
             return FALSE;
         }
 
+        /**
+         * Check if validation has passed (and no external errors have been added). Validation is only run once.
+         * @return boolean
+         */
         public function isValid()
         {
             if(!$this->isSubmitted()){
@@ -64,6 +73,23 @@ namespace ClosureForm {
             return $this->_valid;
         }
 
+        /**
+         * Causes the action given to the submitted button to be triggered.
+         *
+         * @return mixed - response of action Closure
+         */
+        public function handleButtonActions()
+        {
+            $submittedData = $this->getSuperglobal();
+            foreach($this->_buttons as $button)
+            {
+                if(array_key_exists($button->getName(), $submittedData))
+                {
+                    return $button->trigger();
+                }
+            }
+        }
+
         private function _getDefaultRowTemplate()
         {
             return function(FieldProxy $field)
@@ -72,10 +98,20 @@ namespace ClosureForm {
             };
         }
 
+        /**
+         * Get the name of the form.
+         * @return string
+         */
         public function getName(){
             return $this->_name;
         }
 
+        /**
+         * Get a field by name. Throws Exception if field is not found.
+         * @param string $name
+         * @return FieldProxy
+         * @throws \RuntimeException
+         */
         public function getField($name)
         {
             if(!isset($this->_fields[$name]))
@@ -85,37 +121,58 @@ namespace ClosureForm {
             return $this->_fields[$name];
         }
 
+        /**
+         * Get all the fields for the form
+         * @return array
+         */
         public function getFields(){
             return $this->_fields;
         }
 
+        /**
+         * Get all the buttons for the form
+         * @return array
+         */
+        public function getButtons(){
+            return $this->_buttons;
+        }
+
+       /**
+        * Text type field.
+        * @param string $name
+        * @return FieldProxy
+        */
         public function addTextField($name)
         {
             return $this->addInputField('text', $name);
         }
 
+        /**
+         * Hidden type field. Hidden fields do not render row or error elements either.
+         * @param string $name
+         * @return FieldProxy
+         */
         public function addHiddenField($name)
         {
             return $this->addInputField('hidden', $name);
         }
 
+        /**
+         * Password type field.
+         *
+         * @param string $name
+         * @return FieldProxy
+         */
         public function addPasswordField($name)
         {
             return $this->addInputField('password', $name);
         }
 
-        //TODO: When buttons have been implemented I think this can be removed
-        public function addSubmitField($name)
-        {
-            return $this->addInputField('submit', $name);
-        }
-
-        //TODO: Add button - can we do $name, Closure $handler? maybe requires buttons to not be standard field proxies
-        public function addButton($name)
-        {
-
-        }
-
+        /**
+         * Checkbox type field.
+         * @param string $name
+         * @return FieldProxy
+         */
         public function addCheckboxField($name){
             $form = $this;
             $field = $this->addInputField('checkbox', $name);
@@ -139,6 +196,12 @@ namespace ClosureForm {
             return $field;
         }
 
+        /**
+         * Select field. This method also takes an options array.
+         * @param string $name
+         * @param array $keyVals field options
+         * @return FieldProxy
+         */
         public function addSelectField($name, array $keyVals)
         {
             $form = $this;
@@ -160,6 +223,12 @@ namespace ClosureForm {
             return $this->_addField($name, $field);
         }
 
+        /**
+         * Add an field with an arbritrary type.
+         * @param string $type
+         * @param string $name
+         * @return FieldProxy
+         */
         public function addInputField($type, $name)
         {
             $field = new FieldProxy($this, $name);
@@ -177,6 +246,11 @@ namespace ClosureForm {
             return $this->_addField($name, $field);
         }
 
+        /**
+         * Textarea type field.
+         * @param string $name
+         * @return FieldProxy
+         */
         public function addTextareaField($name)
         {
             $field = new FieldProxy($this, $name);
@@ -200,13 +274,47 @@ namespace ClosureForm {
             return $field;
         }
 
+       /**
+         * Adds a button to the form. A button is similar to a field but can be assigned an action to perform
+         * if the form is submitted using that button. You must only call handleButtonActions to trigger the relevant
+         * action.
+         *
+         * @param string $name
+         * @return \ClosureForm\Button
+         */
+        public function addButton($name)
+        {
+            return $this->_addButton($name, new ButtonProxy($this, $name));
+        }
+
+        protected function _addButton($name, ButtonProxy $field)
+        {
+            if(!\strlen($name))
+            {
+                throw new \RuntimeException('You cannot add a button with no name');
+            }
+            $this->_buttons[$name] = $field;
+            return $field;
+        }
+
+        /**
+         * Add an external error (i.e. not based on internal validation) to the form. If a field is specified the error
+         * will be appended to that field's error array. Otherwise it'll just display as a generic error.
+         * @param string $errorMsg
+         * @param string $affectsField fieldname of affected field
+         * @return type
+         */
         public function addError($errorMsg, $affectsField=NULL)
         {
             if($affectsField)
             {
-                if($field = $this->getField($affectsField)){
-                    $field->addError($errorMsg);
-                    return;
+                if(array_key_exists($affectsField, $this->_fields))
+                {
+                    if($field = $this->getField($affectsField))
+                    {
+                        $field->addError($errorMsg);
+                        return;
+                    }
                 }
             }
 
@@ -220,6 +328,10 @@ namespace ClosureForm {
             return $this;
         }
 
+        /**
+         * Render the entire form including all errors, fields and buttons
+         * @return type
+         */
         public function render()
         {
             $rowTemplate = $this->_rowTemplate;
@@ -247,11 +359,25 @@ namespace ClosureForm {
                     $output[] = $rowTemplate($field);
                 }
             }
+            if(count($this->getButtons())){
+
+                $output[] = '<div class="button-row">';
+                foreach($this->getButtons() as $button)
+                {
+                    $output[] = $button->render();
+                }
+                $output[] = '</div>';
+            }
             $output[] = '</form>';
 
             return (string)implode(PHP_EOL, $output);
         }
 
+        /**
+         * Convert keyval pairs into an attribute string.
+         * @param array $attributes
+         * @return string
+         */
         public function getAttributeString($attributes)
         {
             $attributeOutput = array();
@@ -262,11 +388,21 @@ namespace ClosureForm {
             return implode(" ", $attributeOutput);
         }
 
+        /**
+         * Get the value of a specific form attribute.
+         * @param string $name
+         * @return type
+         */
         public function getAttribute($name)
         {
-            return !empty($this->_attributes[$name]) ? $this->_attributes[$name] : NULL;
+            return empty($this->_attributes[$name]) ? NULL : $this->_attributes[$name];
         }
 
+        /**
+         * Get the POST or GET array depending on the form method attribute.
+         * @return array
+         * @throws \RuntimeException
+         */
         public function getSuperglobal()
         {
             if(empty($this->_attributes['method'])){
@@ -282,6 +418,5 @@ namespace ClosureForm {
                     throw new \RuntimeException('Invalid form method: '.$this->_attributes['method']);
             }
         }
-
     }
 }

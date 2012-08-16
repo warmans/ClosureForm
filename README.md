@@ -8,18 +8,63 @@ E.g.
 ```php
 <?php
 
-$form = new \ClosureForm\Form('my-form', array('method'=>'POST');
-$form->addTextField('foo')
-    ->attributes(array('class'=>'required'))
-    ->validator(function($value) {
-         return ($value) ? NULL : 'Error: Required Field';
-    });
+$form = new \ClosureForm\Form('signup-form', array('method'=>'post', 'action'=>'#', 'class'=>'form'));
 
-if($form->isSubmitted() && $form->isValid())
+/* username */
+
+$form->addTextField('email')->label('Email Address')->validator(function($value){
+    if(strlen($value) < 3){
+        return 'Email cannot be less than 3 characters';
+    }
+    if(!filter_var($value, FILTER_VALIDATE_EMAIL)){
+        return "This is not a valid email address";
+    }
+});
+
+/* password + confirmation */
+
+$form->addPasswordField('password')->label('Password')->validator(function($value){
+    if(strlen($value) < 5){
+        return 'Password cannot be less than 5 characters';
+    }
+
+});
+$form->addPasswordField('confirm_password')->label('Confirm Password')->validator(function($value) use ($form) {
+    if($value != $form->getField('password')->getSubmittedValue()){
+        return 'Password Confirmation did not match password';
+    }
+});
+
+/* submit */
+
+$form->addButton('submit')->label('Submit')->action(function($form){
+    if($form->isValid())
+    {
+        if(rand(1, 10) <= 5)
+        {
+            $form->addError('We have decided to randomly reject your registration. Sorry!');
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+});
+
+$form->addButton('login')->label('or Login')->action(function($form){
+    header('Location:/some-login-page.php');
+    exit();
+});
+
+/* process form using the relevant button action if submitted */
+
+if($form->handleSubmission())
 {
-    //do something
+    echo 'Thank You!';
 }
 
-echo $form->render(); //output form including any errors
+/* output form */
+
+echo $form->render();
 
 ```
