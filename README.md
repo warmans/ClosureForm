@@ -76,3 +76,6 @@ TODOs
 - Field Arrays (e.g. name[])
 - Fieldsets
 - Filters
+- Multiple field validators per field
+- Provide methods for overriding submitted data
+- Rethink fields to allow manual field rendering e.g. getting the type from a field is currently impossible as this is parts of the template
