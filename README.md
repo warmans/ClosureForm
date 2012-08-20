@@ -36,7 +36,6 @@ $form->addPasswordField('password')->label('Password')->validator(function($valu
 
 });
 
-
 $form->addPasswordField('confirm_password')->label('Confirm Password')->validator(function($value) use ($form) {
     //example of using another field's value in a field validator via the USE keyword
     if($value != $form->getField('password')->getSubmittedValue()){
