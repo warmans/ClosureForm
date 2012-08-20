@@ -11,11 +11,11 @@ namespace ClosureForm {
         private $_attributes = array();
         private $_fields = array();
         private $_buttons = array();
-        private $_hiddenFields = array();
         private $_rowTemplate;
         private $_internal_field_prefix = '_internal_';
         private $_valid = NULL;
         private $_generalErrors = array();
+        private $_superglobalOverride;
 
         public function __construct($name='generic-form', array $attributes=array('method'=>'POST'))
         {
@@ -33,6 +33,12 @@ namespace ClosureForm {
          */
         public function isSubmitted()
         {
+            if($this->_superglobalOverride){
+                //if the user has set a superglobal override we can only assume they want the form to appear submitted
+                return TRUE;
+            }
+
+            //normal form submit - check for automatically created hidden field
             $submittedValues = $this->getSuperglobal();
             $formSubFieldName = $this->_internal_field_prefix.$this->getName();
             if(!empty($submittedValues[$formSubFieldName]) && $submittedValues[$formSubFieldName] == 1){
@@ -176,7 +182,9 @@ namespace ClosureForm {
         public function addCheckboxField($name){
             $form = $this;
             $field = $this->addInputField('checkbox', $name);
-            $field->template(function($field) use ($form){
+
+            //this is field specific behaviour
+            $field->preRender(function($field) use ($form){
                 if($form->isSubmitted())
                 {
                     if($field->getSubmittedValue() === FALSE)
@@ -191,8 +199,12 @@ namespace ClosureForm {
                         }
                     }
                 }
+            });
+
+            $field->template(function($field){
                 return '<label><input type="checkbox" name="'.$field->getName().'" '.$field->getAttributeString().'/> '.$field->getLabel().' </label>';
             });
+
             return $field;
         }
 
@@ -205,7 +217,7 @@ namespace ClosureForm {
         public function addSelectField($name, array $keyVals)
         {
             $form = $this;
-            $field = new FieldProxy($this, $name);
+            $field = new FieldProxy($this, $name, 'select');
             $field->template(
                 function(FieldProxy $field) use ($keyVals, $form){
                     $output = array();
@@ -231,7 +243,7 @@ namespace ClosureForm {
          */
         public function addInputField($type, $name)
         {
-            $field = new FieldProxy($this, $name);
+            $field = new FieldProxy($this, $name, $type);
             $field->template(
                 function(FieldProxy $field) use ($type)
                 {
@@ -239,10 +251,7 @@ namespace ClosureForm {
                     return $label.'<input type="'.$type.'" name="'.$field->getName().'" '.$field->getAttributeString().'/>';
                 }
             );
-            if($type == 'hidden')
-            {
-                $this->_hiddenFields[] = $name;
-            }
+
             return $this->_addField($name, $field);
         }
 
@@ -253,7 +262,7 @@ namespace ClosureForm {
          */
         public function addTextareaField($name)
         {
-            $field = new FieldProxy($this, $name);
+            $field = new FieldProxy($this, $name, 'textarea');
             $field->template(
                 function(FieldProxy $field){
                     $value = $field->extractAttribute('value');
@@ -265,11 +274,6 @@ namespace ClosureForm {
 
         protected function _addField($name, FieldProxy $field)
         {
-            if(!\strlen($name))
-            {
-                throw new \RuntimeException('You cannot add a field with no name');
-            }
-
             $this->_fields[$name] = $field;
             return $field;
         }
@@ -310,11 +314,9 @@ namespace ClosureForm {
             {
                 if(array_key_exists($affectsField, $this->_fields))
                 {
-                    if($field = $this->getField($affectsField))
-                    {
-                        $field->addError($errorMsg);
-                        return;
-                    }
+                    $field = $this->getField($affectsField);
+                    $field->addError($errorMsg);
+                    return;
                 }
             }
 
@@ -350,7 +352,7 @@ namespace ClosureForm {
             //fields
             foreach($this->getFields() as $field)
             {
-                if(in_array($field->getName(), $this->_hiddenFields))
+                if($field->getType() === 'hidden')
                 {
                     //don't render row or errors for a hidden field
                     $output[] = $field->errorTemplate(function($value){ return; })->render();
@@ -399,12 +401,27 @@ namespace ClosureForm {
         }
 
         /**
+         * Override the superglobal specified by the form method e.g. rather than using _POST use $data.
+         * @param array $data
+         */
+        public function setSuperglobalOverride(array $data)
+        {
+            $this->_superglobalOverride = $data;
+        }
+
+        /**
          * Get the POST or GET array depending on the form method attribute.
          * @return array
          * @throws \RuntimeException
          */
         public function getSuperglobal()
         {
+            //allow superglobal to be overridden by manually created data array
+            if($this->_superglobalOverride)
+            {
+                return $this->_superglobalOverride;
+            }
+
             if(empty($this->_attributes['method'])){
                 throw new \RuntimeException('Form method attribute is required');
             }
@@ -418,5 +435,6 @@ namespace ClosureForm {
                     throw new \RuntimeException('Invalid form method: '.$this->_attributes['method']);
             }
         }
+
     }
 }

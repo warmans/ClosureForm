@@ -69,13 +69,14 @@ echo $form->render();
 
 ```
 
-TODOs
+TODO
 ===========
 - CSRF Protection (not easy when most people use their own session handler). Session save handler could be passed as optional closure - otherwise native PHP session handling can be used.
 - Radio Buttons
 - Field Arrays (e.g. name[])
 - Fieldsets
 - Filters
-- Multiple field validators per field
-- Provide methods for overriding submitted data
-- Rethink fields to allow manual field rendering e.g. getting the type from a field is currently impossible as this is parts of the template
+
+Maybe TODO
+===========
+- Automatic closure binding to form scope http://www.php.net/manual/en/closure.bind.php (5.4 only+) - 5.4 is still to rare in the wild to add this.

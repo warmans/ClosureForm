@@ -60,6 +60,25 @@ class FormTest extends \PHPUnit_Framework_TestCase {
         $this->_form->isValid();
         $this->assertContains('<div class="error-msg"', $this->_form->render());
     }
+    
+    /**
+    * @group current
+    */
+    public function testMultipleValidatorErrors()
+    {
+        $this->_form->addTextField('text-field-1')
+            ->validator(function($field){ return 'ERROR!'; })
+            ->validator(function($field){ return 'FOOBARBAZ'; });
+
+        $this->_fakeFormSubmit($this->_form);
+        $this->_form->isValid();
+
+        $output = $this->_form->render();
+
+        $this->assertContains('ERROR!', $output);
+        $this->assertContains('FOOBARBAZ', $output);
+
+    }
 
 
    /**
@@ -309,7 +328,7 @@ class FormTest extends \PHPUnit_Framework_TestCase {
     */
     public function testAddExternalErrorToFieldIfFieldNotFound()
     {
-        $field = $this->_form->addTextField('tb');
+
         $this->_form->addError('External Error For Unknown Field', 'foobarbaz');
         $this->_fakeFormSubmit($this->_form);
         $this->assertContains('<div class="general-error">External Error For Unknown Field</div>', $this->_form->render());
@@ -369,5 +388,23 @@ class FormTest extends \PHPUnit_Framework_TestCase {
         $this->_form->addButton();
     }
 
+    /**
+    * @group current
+    */
+    public function testSuperglobalOverride()
+    {
+        $fakeSuperglobal = array('foo'=>'bar');
+        $this->_form->setSuperglobalOverride($fakeSuperglobal);
+        $this->assertEquals($fakeSuperglobal, $this->_form->getSuperglobal());
+    }
+
+    /**
+    * @group current
+    */
+    public function testSuperglobalOverrideCausesFormToAppearSubmitted()
+    {
+        $this->_form->setSuperglobalOverride(array('foo'=>'bar'));
+        $this->assertTrue($this->_form->isSubmitted());
+    }
 
 }

@@ -101,4 +101,21 @@ class FieldProxyTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals('my label', $fieldProxy->label('my label')->getLabel());
     }
 
+    /**
+     * @group current
+     */
+    public function testPreRenderActionIsExecuted()
+    {
+        $fieldProxy = new \ClosureForm\FieldProxy($this->_getMockForm(), 'test-field');
+
+        $fieldName = NULL;
+        $fieldProxy->preRender(function($field) use (&$fieldName){
+            $fieldName = $field->getName();
+        });
+
+        $fieldProxy->render();
+
+        $this->assertEquals('test-field', $fieldName);
+    }
+
 }

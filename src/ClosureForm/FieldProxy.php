@@ -9,63 +9,124 @@ namespace ClosureForm {
      */
     class FieldProxy {
 
+        /**
+         * Parent form.
+         * @var type
+         */
         private $_form;
 
+        /**
+         * Invoked immediatly before render.
+         * @var \Closure
+         */
+        private $_preRenderAction;
+
+        /**
+         * Template for field. Passed an instace of form and expected to return markup.
+         * @var \Closure
+         */
         private $_fieldTemplate;
+
+        /**
+         * Template for field error. Default is provided.
+         * @var \Closure
+         */
         private $_errorTemplate;
 
+        private $_fieldType;
         private $_fieldName;
         private $_fieldLabel;
 
         private $_attributes = array();
-        private $_validator;
+        private $_validators = array();
 
         private $_valid = NULL;
         private $_errors = array();
 
-        public function __construct(Form $form, $fieldName)
+        public function __construct(Form $form, $fieldName, $fieldType='text')
         {
+            if(!$fieldName)
+            {
+                throw new \RuntimeException('You cannot create a field with no name');
+            }
+
             $this->_form = $form;
             $this->_fieldName = $fieldName;
+            $this->_fieldType = $fieldType;
         }
 
-        /*fluent interface*/
+        public function preRender(\Closure $preRenderAction)
+        {
+            $this->_preRenderAction = $preRenderAction;
+            return $this;
+        }
 
+        /**
+         * Override the template for the field.
+         * @param \Closure $template
+         * @return \ClosureForm\FieldProxy
+         */
         public function template(\Closure $template)
         {
             $this->_fieldTemplate = $template;
             return $this;
         }
 
+        /**
+         * Override error template for the field.
+         * @param \Closure $template
+         * @return \ClosureForm\FieldProxy
+         */
         public function errorTemplate(\Closure $template)
         {
             $this->_errorTemplate = $template;
             return $this;
         }
 
+        /**
+         * Set multiple attributes at once. Attributes are rendered in the format of key="value"
+         * @param array $attributes
+         * @return \ClosureForm\FieldProxy
+         */
         public function attributes(array $attributes=array())
         {
             $this->_attributes = $attributes;
             return $this;
         }
 
+        /**
+         * Set the value of a specific attribute
+         * @param string $name
+         * @param string $value
+         * @return \ClosureForm\FieldProxy
+         */
+        public function attribute($name, $value){
+            $this->_attributes[$name] = $value;
+            return $this;
+        }
+
+        /**
+         * Set the label for the field
+         * @param string $label
+         * @return \ClosureForm\FieldProxy
+         */
         public function label($label)
         {
             $this->_fieldLabel = $label;
             return $this;
         }
 
-        public function attribute($name, $value){
-            $this->_attributes[$name] = $value;
-            return $this;
-        }
-
+        /**
+         * Valdate the field using the supplied function. Returning an error message or FALSE will invalidate the field.
+         * Returning anything else (e.g. NULL, TRUE, 0, 1) will not invalidate the field.
+         * @param \Closure $validator
+         * @return \ClosureForm\FieldProxy
+         */
         public function validator(\Closure $validator)
         {
-            $this->_validator = $validator;
+            $this->_validators[] = $validator;
+            return $this;
         }
-
-        /*end fluent interface*/
 
         public function _getDefaultErrorTemplate(){
             return function(FieldProxy $field)
@@ -78,16 +139,33 @@ namespace ClosureForm {
             };
         }
 
+        /**
+         * Get the name of the field
+         * @return string
+         */
         public function getName()
         {
             return $this->_fieldName;
         }
 
+        /**
+         * Get the field label (not including <label> tags)
+         * @return type
+         */
         public function getLabel()
         {
             return $this->_fieldLabel;
         }
 
+        public function getType(){
+            return $this->_fieldType;
+        }
+
+        /**
+         * Get the submitted value for this field. If the form hasn't been submitted you will get NULL. If the fiels was
+         * not set you will get FALSE (e.g. a non-checked checkbox)
+         * @return mixed
+         */
         public function getSubmittedValue()
         {
             if(!$this->_form->isSubmitted()){
@@ -97,11 +175,20 @@ namespace ClosureForm {
             return (isset($submittedValues[$this->getName()])) ? $submittedValues[$this->getName()] :  FALSE;
         }
 
+        /**
+         * Get the attribute string e.g. class="foo" id="bar"
+         * @return type
+         */
         public function getAttributeString()
         {
             return $this->_form->getAttributeString($this->_attributes);
         }
 
+        /**
+         * Get the value of a single attribute
+         * @param type $name
+         * @return type
+         */
         public function getAttribute($name)
         {
             return (isset($this->_attributes[$name])) ? $this->_attributes[$name] : NULL;
@@ -123,6 +210,10 @@ namespace ClosureForm {
             return NULL;
         }
 
+        /**
+         * Test the field against its validators.
+         * @return boolean
+         */
         public function isValid()
         {
             if(!$this->_form->isSubmitted())
@@ -137,29 +228,41 @@ namespace ClosureForm {
             }
 
             $this->_valid = TRUE;
-            if($validator = $this->_validator)
+            foreach($this->_validators as $validator)
             {
                 $error = $validator($this->getSubmittedValue());
-                if($error)
+                if(is_string($error) || $error === FALSE)
                 {
-                    $this->_errors[] = $error;
+                    $this->_errors[] = ($error) ?: 'Value was invalid';
                     $this->_valid = FALSE;
-                    return $this->_valid;
                 }
             }
             return $this->_valid;
         }
 
+        /**
+         * Get an array of errors or empty array if non were found
+         * @return array
+         */
         public function getErrors()
         {
             return $this->_errors;
         }
 
+        /**
+         * Add an error to the field.
+         * @param string $error
+         * @return \ClosureForm\FieldProxy
+         */
         public function addError($error){
             $this->_errors[] = $error;
             return $this;
         }
 
+        /**
+         * Render the field using the field template (and error template)
+         * @return string
+         */
         public function render()
         {
             //always validate
@@ -170,10 +273,13 @@ namespace ClosureForm {
                 $this->attribute('value', $this->getSubmittedValue());
             }
 
-            $templateRenderer = $this->_fieldTemplate;
+            //Some fields have unusual logic (e.g. checkboxes) preRender actions allow this to occur without complicating
+            //the render template
+            ($this->_preRenderAction) ? $this->_preRenderAction->__invoke($this) : null;
+
             $errorRenderer = ($this->_errorTemplate) ?: $this->_getDefaultErrorTemplate();
 
-            return $templateRenderer($this).$errorRenderer($this);
+            return (($this->_fieldTemplate) ? $this->_fieldTemplate->__invoke($this) : '').$errorRenderer($this);
         }
     }
 }
