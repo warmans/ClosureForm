@@ -47,7 +47,7 @@ class FormTest extends \PHPUnit_Framework_TestCase {
     public function testTextFieldRenderer()
     {
         $this->_form->addTextField('text-field-1');
-        $this->assertContains('<input type="text" name="text-field-1" />', $this->_form->render());
+        $this->assertContains('<input type="text" id="text-field-1" name="text-field-1" />', $this->_form->render());
     }
 
     /**
@@ -60,7 +60,7 @@ class FormTest extends \PHPUnit_Framework_TestCase {
         $this->_form->isValid();
         $this->assertContains('<div class="error-msg"', $this->_form->render());
     }
-    
+
     /**
     * @group current
     */
@@ -202,7 +202,7 @@ class FormTest extends \PHPUnit_Framework_TestCase {
     public function testPasswordField()
     {
         $this->_form->addPasswordField('pass');
-        $this->assertContains('<input type="password" name="pass" />', $this->_form->render());
+        $this->assertContains('<input type="password" id="pass" name="pass" />', $this->_form->render());
     }
 
     /**
@@ -211,7 +211,7 @@ class FormTest extends \PHPUnit_Framework_TestCase {
     public function testTextAreaField()
     {
         $this->_form->addTextareaField('ta')->attributes(array('value'=>'foo'));
-        $this->assertContains('<textarea name="ta" >foo</textarea>', $this->_form->render());
+        $this->assertContains('<textarea id="ta" name="ta" >foo</textarea>', $this->_form->render());
     }
 
     /**
@@ -286,7 +286,7 @@ class FormTest extends \PHPUnit_Framework_TestCase {
     {
         $field = $this->_form->addSelectField('sel', array('yes'=>'Yes', 'no'=>'No'));
         $output = $field->render();
-        $this->assertContains('<select name="sel" >', $output);
+        $this->assertContains('<select id="sel" name="sel" >', $output);
         $this->assertContains('<option value="yes" >Yes</option>', $output);
     }
 

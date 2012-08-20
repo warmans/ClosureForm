@@ -5,14 +5,20 @@ $form = new \ClosureForm\Form('signup-form', array('method'=>'post', 'action'=>'
 
 /* username */
 
-$form->addTextField('email')->label('Email Address')->validator(function($value){
-    if(strlen($value) < 3){
-        return 'Email cannot be less than 3 characters';
-    }
-    if(!filter_var($value, FILTER_VALIDATE_EMAIL)){
-        return "This is not a valid email address";
-    }
-});
+$form->addTextField('email')
+    ->label('Email Address')
+    ->validator(function($value){
+        //first validator
+        if(strlen($value) < 3){
+            return 'Email cannot be less than 3 characters';
+        }
+    })
+    ->validator(function($value){
+        //second validator
+        if(!filter_var($value, FILTER_VALIDATE_EMAIL)){
+            return "This is not a valid email address";
+        }
+    });
 
 /* password + confirmation */
 
@@ -22,7 +28,10 @@ $form->addPasswordField('password')->label('Password')->validator(function($valu
     }
 
 });
+
+
 $form->addPasswordField('confirm_password')->label('Confirm Password')->validator(function($value) use ($form) {
+    //example of using another field's value in a field validator via the USE keyword
     if($value != $form->getField('password')->getSubmittedValue()){
         return 'Password Confirmation did not match password';
     }
