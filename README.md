@@ -79,4 +79,4 @@ TODO
 
 Maybe TODO
 ===========
-- Automatic closure binding to form scope http://www.php.net/manual/en/closure.bind.php (5.4 only+) - 5.4 is still to rare in the wild to add this.
+- Automatic closure binding to form scope http://www.php.net/manual/en/closure.bind.php (5.4 only+) - 5.4 is still too rare in the wild to add this.
