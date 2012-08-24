@@ -1,8 +1,13 @@
 <?php
 namespace ClosureForm {
     /**
-     * ClosureForm Form. The only component that the user is expected to use directly.
+     * ClosureForm Form
      *
+     * Lightweight form generation/handling library that gives the end user a lot of flexibility though the use
+     * of Closures/Anonymous functions. Validations are Closures, field templates are Closures, buttons can be given
+     * actions though Closures that are executed automatically on form submit.
+     *
+     * @link https://github.com/warmans/ClosureForm
      * @author warmans
      */
     class Form {
@@ -17,6 +22,12 @@ namespace ClosureForm {
         private $_generalErrors = array();
         private $_superglobalOverride;
 
+        /**
+         * Construct a new form.
+         *
+         * @param string $name The name of this particular form.
+         * @param array $attributes Attributes are rendered as attt="val" in the form tag. You should set method, action etc. here
+         */
         public function __construct($name='generic-form', array $attributes=array('method'=>'POST'))
         {
             $this->_name = $name;
@@ -29,6 +40,7 @@ namespace ClosureForm {
         /**
          * Check if the form has been submitted. This is based on the presence of an auto-generated
          * field in the in the relevant superglobal (POST, GET).
+         *
          * @return boolean
          */
         public function isSubmitted()
@@ -49,6 +61,7 @@ namespace ClosureForm {
 
         /**
          * Check if validation has passed (and no external errors have been added). Validation is only run once.
+         *
          * @return boolean
          */
         public function isValid()
@@ -98,14 +111,15 @@ namespace ClosureForm {
 
         private function _getDefaultRowTemplate()
         {
-            return function(FieldProxy $field)
+            return function(Element\FieldProxy $field)
             {
                 return '<div class="form-row'.($field->isValid() ? '' : ' error-row').'">'.$field->render().'</div>';
             };
         }
 
         /**
-         * Get the name of the form.
+         * Get the name of the form as defined in the constructor.
+         *
          * @return string
          */
         public function getName(){
@@ -114,8 +128,9 @@ namespace ClosureForm {
 
         /**
          * Get a field by name. Throws Exception if field is not found.
+         *
          * @param string $name
-         * @return FieldProxy
+         * @return Element\FieldProxy
          * @throws \RuntimeException
          */
         public function getField($name)
@@ -128,25 +143,28 @@ namespace ClosureForm {
         }
 
         /**
-         * Get all the fields for the form
-         * @return array
+         * Get all the fields added to the form.
+         *
+         * @return array Returns an array of FieldProxy elements
          */
         public function getFields(){
             return $this->_fields;
         }
 
         /**
-         * Get all the buttons for the form
-         * @return array
+         * Get all the buttons for the form.
+         *
+         * @return array Returns and array of ButtonProxy elements
          */
         public function getButtons(){
             return $this->_buttons;
         }
 
        /**
-        * Text type field.
+        * Text type field (i.e. a standard input).
+        *
         * @param string $name
-        * @return FieldProxy
+        * @return Element\FieldProxy
         */
         public function addTextField($name)
         {
@@ -154,9 +172,10 @@ namespace ClosureForm {
         }
 
         /**
-         * Hidden type field. Hidden fields do not render row or error elements either.
+         * Hidden field. Hidden fields do not render row or error elements either.
+         *
          * @param string $name
-         * @return FieldProxy
+         * @return Element\FieldProxy
          */
         public function addHiddenField($name)
         {
@@ -164,10 +183,10 @@ namespace ClosureForm {
         }
 
         /**
-         * Password type field.
+         * Password field (text field with obsucred characters)
          *
          * @param string $name
-         * @return FieldProxy
+         * @return Element\FieldProxy
          */
         public function addPasswordField($name)
         {
@@ -176,8 +195,9 @@ namespace ClosureForm {
 
         /**
          * Checkbox type field.
+         *
          * @param string $name
-         * @return FieldProxy
+         * @return Element\FieldProxy
          */
         public function addCheckboxField($name){
             $form = $this;
@@ -210,16 +230,17 @@ namespace ClosureForm {
 
         /**
          * Select field. This method also takes an options array.
+         *
          * @param string $name
-         * @param array $keyVals field options
-         * @return FieldProxy
+         * @param array $keyVals field options in key=>val (value=>display) pairs
+         * @return Element\FieldProxy
          */
         public function addSelectField($name, array $keyVals)
         {
             $form = $this;
-            $field = new FieldProxy($this, $name, 'select');
+            $field = new Element\FieldProxy($this, $name, 'select');
             $field->template(
-                function(FieldProxy $field) use ($keyVals, $form){
+                function(Element\FieldProxy $field) use ($keyVals, $form){
                     $output = array();
                     $value = ($form->isSubmitted()) ? $field->getSubmittedValue() : $field->extractAttribute('value');
                     $output[] = '<label for="'.$field->getName().'">'.$field->getLabel().'</label><select id="'.$field->getName().'" name="'.$field->getName().'" '.$field->getAttributeString().'>';
@@ -236,16 +257,17 @@ namespace ClosureForm {
         }
 
         /**
-         * Add an field with an arbritrary type.
-         * @param string $type
+         * Field with a user defined type (e.g. text, password, etc.)
+         *
+         * @param string $type The value given to the type attribute of the field.
          * @param string $name
-         * @return FieldProxy
+         * @return Element\FieldProxy
          */
         public function addInputField($type, $name)
         {
-            $field = new FieldProxy($this, $name, $type);
+            $field = new Element\FieldProxy($this, $name, $type);
             $field->template(
-                function(FieldProxy $field) use ($type)
+                function(Element\FieldProxy $field) use ($type)
                 {
                     $label = ($type == 'hidden') ? '' : '<label for="'.$field->getName().'">'.$field->getLabel().'</label>';
                     return $label.'<input type="'.$type.'" id="'.$field->getName().'" name="'.$field->getName().'" '.$field->getAttributeString().'/>';
@@ -257,14 +279,15 @@ namespace ClosureForm {
 
         /**
          * Textarea type field.
+         *
          * @param string $name
-         * @return FieldProxy
+         * @return Element\FieldProxy
          */
         public function addTextareaField($name)
         {
-            $field = new FieldProxy($this, $name, 'textarea');
+            $field = new Element\FieldProxy($this, $name, 'textarea');
             $field->template(
-                function(FieldProxy $field){
+                function(Element\FieldProxy $field){
                     $value = $field->extractAttribute('value');
                     return '<label for="'.$field->getName().'">'.$field->getLabel().'</label><textarea id="'.$field->getName().'" name="'.$field->getName().'" '.$field->getAttributeString().'>'.$value.'</textarea>';
                 }
@@ -272,7 +295,7 @@ namespace ClosureForm {
             return $this->_addField($name, $field);
         }
 
-        protected function _addField($name, FieldProxy $field)
+        protected function _addField($name, Element\FieldProxy $field)
         {
             $this->_fields[$name] = $field;
             return $field;
@@ -288,10 +311,10 @@ namespace ClosureForm {
          */
         public function addButton($name)
         {
-            return $this->_addButton($name, new ButtonProxy($this, $name));
+            return $this->_addButton($name, new Element\ButtonProxy($this, $name));
         }
 
-        protected function _addButton($name, ButtonProxy $field)
+        protected function _addButton($name, Element\ButtonProxy $field)
         {
             if(!\strlen($name))
             {
@@ -304,9 +327,11 @@ namespace ClosureForm {
         /**
          * Add an external error (i.e. not based on internal validation) to the form. If a field is specified the error
          * will be appended to that field's error array. Otherwise it'll just display as a generic error.
+         * Returns $this to allow error chaining.
+         *
          * @param string $errorMsg
          * @param string $affectsField fieldname of affected field
-         * @return type
+         * @return Form
          */
         public function addError($errorMsg, $affectsField=NULL)
         {
@@ -322,6 +347,8 @@ namespace ClosureForm {
 
             //error not related to any field in particular
             $this->_addGeneralError($errorMsg);
+
+            return $this;
         }
 
         private function _addGeneralError($errorMsg)
@@ -331,8 +358,9 @@ namespace ClosureForm {
         }
 
         /**
-         * Render the entire form including all errors, fields and buttons
-         * @return type
+         * Render the entire form including all errors, fields and buttons and return as a string.
+         *
+         * @return string
          */
         public function render()
         {
@@ -376,8 +404,9 @@ namespace ClosureForm {
         }
 
         /**
-         * Convert keyval pairs into an attribute string.
-         * @param array $attributes
+         * Convert keyval pairs into an attribute string. Users should not need this.
+         *
+         * @param array $attributes name=>val pairs
          * @return string
          */
         public function getAttributeString($attributes)
@@ -391,9 +420,10 @@ namespace ClosureForm {
         }
 
         /**
-         * Get the value of a specific form attribute.
+         * Get the value of a specific form attribute or NULL if empty.
+         *
          * @param string $name
-         * @return type
+         * @return mixed
          */
         public function getAttribute($name)
         {
@@ -402,6 +432,7 @@ namespace ClosureForm {
 
         /**
          * Override the superglobal specified by the form method e.g. rather than using _POST use $data.
+         *
          * @param array $data
          */
         public function setSuperglobalOverride(array $data)
@@ -411,6 +442,7 @@ namespace ClosureForm {
 
         /**
          * Get the POST or GET array depending on the form method attribute.
+         *
          * @return array
          * @throws \RuntimeException
          */

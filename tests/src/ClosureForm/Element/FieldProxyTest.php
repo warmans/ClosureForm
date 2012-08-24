@@ -1,5 +1,5 @@
 <?php
-namespace ClosureForm\Test;
+namespace ClosureForm\Element\Test;
 
 class FieldProxyTest extends \PHPUnit_Framework_TestCase {
 
@@ -18,7 +18,7 @@ class FieldProxyTest extends \PHPUnit_Framework_TestCase {
      */
     public function testSetRenderer()
     {
-        $fieldProxy = new \ClosureForm\FieldProxy($this->_getMockForm(), 'test-field');
+        $fieldProxy = new \ClosureForm\Element\FieldProxy($this->_getMockForm(), 'test-field');
         $fieldProxy->template(function($field){
             return '<input type="text" name="'.$field->getName().'" />';
         });
@@ -30,7 +30,7 @@ class FieldProxyTest extends \PHPUnit_Framework_TestCase {
      */
     public function testSetAttributes()
     {
-        $fieldProxy = new \ClosureForm\FieldProxy($this->_getMockForm(), 'test-field');
+        $fieldProxy = new \ClosureForm\Element\FieldProxy($this->_getMockForm(), 'test-field');
         $fieldProxy->attributes(array('id'=>'some-id'));
         $this->assertEquals('id="some-id"', $fieldProxy->getAttributeString());
     }
@@ -43,7 +43,7 @@ class FieldProxyTest extends \PHPUnit_Framework_TestCase {
         $_POST['test-field'] = 'submitted value';
         $_POST['_internal_generic-form'] = 1;
 
-        $fieldProxy = new \ClosureForm\FieldProxy($this->_getMockForm(), 'test-field');
+        $fieldProxy = new \ClosureForm\Element\FieldProxy($this->_getMockForm(), 'test-field');
         $fieldProxy->validator(function($value){
             return $value;
         });
@@ -60,7 +60,7 @@ class FieldProxyTest extends \PHPUnit_Framework_TestCase {
         $_POST['test-field'] = 'submitted value';
         $_POST['_internal_generic-form'] = 1;
 
-        $fieldProxy = new \ClosureForm\FieldProxy($this->_getMockForm(), 'test-field');
+        $fieldProxy = new \ClosureForm\Element\FieldProxy($this->_getMockForm(), 'test-field');
         $fieldProxy->validator(function($value){
             return null;
         });
@@ -74,7 +74,7 @@ class FieldProxyTest extends \PHPUnit_Framework_TestCase {
      */
     public function testValidateNonSubmittedField()
     {
-        $fieldProxy = new \ClosureForm\FieldProxy($this->_getMockForm(), 'test-field');
+        $fieldProxy = new \ClosureForm\Element\FieldProxy($this->_getMockForm(), 'test-field');
         $fieldProxy->validator(function($value){
             return 'Error!';
         });
@@ -88,7 +88,7 @@ class FieldProxyTest extends \PHPUnit_Framework_TestCase {
      */
     public function testGetSubmittedValueFromNonSubmittedForm()
     {
-        $fieldProxy = new \ClosureForm\FieldProxy($this->_getMockForm(), 'test-field');
+        $fieldProxy = new \ClosureForm\Element\FieldProxy($this->_getMockForm(), 'test-field');
         $this->assertNull($fieldProxy->getSubmittedValue());
     }
 
@@ -97,7 +97,7 @@ class FieldProxyTest extends \PHPUnit_Framework_TestCase {
      */
     public function testSetThenGetLabel()
     {
-        $fieldProxy = new \ClosureForm\FieldProxy($this->_getMockForm(), 'test-field');
+        $fieldProxy = new \ClosureForm\Element\FieldProxy($this->_getMockForm(), 'test-field');
         $this->assertEquals('my label', $fieldProxy->label('my label')->getLabel());
     }
 
@@ -106,7 +106,7 @@ class FieldProxyTest extends \PHPUnit_Framework_TestCase {
      */
     public function testPreRenderActionIsExecuted()
     {
-        $fieldProxy = new \ClosureForm\FieldProxy($this->_getMockForm(), 'test-field');
+        $fieldProxy = new \ClosureForm\Element\FieldProxy($this->_getMockForm(), 'test-field');
 
         $fieldName = NULL;
         $fieldProxy->preRender(function($field) use (&$fieldName){

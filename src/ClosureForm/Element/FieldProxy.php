@@ -1,5 +1,5 @@
 <?php
-namespace ClosureForm {
+namespace ClosureForm\Element {
     /**
      * FieldProxy was initially used to provide a fluent interface for fields ultimately proxying the Form class.
      * At this point they no longer really fit the GoF taxonomy for a Proxy because all the field behaviour was moved
@@ -43,7 +43,15 @@ namespace ClosureForm {
         private $_valid = NULL;
         private $_errors = array();
 
-        public function __construct(Form $form, $fieldName, $fieldType='text')
+        /**
+         * Construct a new Field.
+         *
+         * @param \ClosureForm\Form $form The parent form
+         * @param string $fieldName
+         * @param string $fieldType
+         * @throws \RuntimeException
+         */
+        public function __construct(\ClosureForm\Form $form, $fieldName, $fieldType='text')
         {
             if(!$fieldName)
             {
@@ -55,6 +63,12 @@ namespace ClosureForm {
             $this->_fieldType = $fieldType;
         }
 
+        /**
+         * A function that is executed before the field is rendered .
+         *
+         * @param \Closure $preRenderAction
+         * @return \ClosureForm\Element\FieldProxy
+         */
         public function preRender(\Closure $preRenderAction)
         {
             $this->_preRenderAction = $preRenderAction;
@@ -63,6 +77,7 @@ namespace ClosureForm {
 
         /**
          * Override the template for the field.
+         *
          * @param \Closure $template
          * @return \ClosureForm\FieldProxy
          */
@@ -74,6 +89,7 @@ namespace ClosureForm {
 
         /**
          * Override error template for the field.
+         *
          * @param \Closure $template
          * @return \ClosureForm\FieldProxy
          */
@@ -85,6 +101,7 @@ namespace ClosureForm {
 
         /**
          * Set multiple attributes at once. Attributes are rendered in the format of key="value"
+         *
          * @param array $attributes
          * @return \ClosureForm\FieldProxy
          */
@@ -96,6 +113,7 @@ namespace ClosureForm {
 
         /**
          * Set the value of a specific attribute
+         *
          * @param string $name
          * @param string $value
          * @return \ClosureForm\FieldProxy
@@ -107,6 +125,7 @@ namespace ClosureForm {
 
         /**
          * Set the label for the field
+         *
          * @param string $label
          * @return \ClosureForm\FieldProxy
          */
@@ -119,6 +138,7 @@ namespace ClosureForm {
         /**
          * Valdate the field using the supplied function. Returning an error message or FALSE will invalidate the field.
          * Returning anything else (e.g. NULL, TRUE, 0, 1) will not invalidate the field.
+         *
          * @param \Closure $validator
          * @return \ClosureForm\FieldProxy
          */
@@ -128,7 +148,7 @@ namespace ClosureForm {
             return $this;
         }
 
-        public function _getDefaultErrorTemplate(){
+        protected function _getDefaultErrorTemplate(){
             return function(FieldProxy $field)
             {
                 $output = array();
@@ -140,7 +160,8 @@ namespace ClosureForm {
         }
 
         /**
-         * Get the name of the field
+         * Get the name of the field.
+         *
          * @return string
          */
         public function getName()
@@ -149,21 +170,28 @@ namespace ClosureForm {
         }
 
         /**
-         * Get the field label (not including <label> tags)
-         * @return type
+         * Get the field label (not including label tags).
+         *
+         * @return string
          */
         public function getLabel()
         {
             return $this->_fieldLabel;
         }
 
+        /**
+         * Get the type of the field (e.g. text, password, textarea).
+         *
+         * @return tring
+         */
         public function getType(){
             return $this->_fieldType;
         }
 
         /**
          * Get the submitted value for this field. If the form hasn't been submitted you will get NULL. If the fiels was
-         * not set you will get FALSE (e.g. a non-checked checkbox)
+         * not set you will get FALSE (e.g. a non-checked checkbox).
+         *
          * @return mixed
          */
         public function getSubmittedValue()
@@ -176,8 +204,9 @@ namespace ClosureForm {
         }
 
         /**
-         * Get the attribute string e.g. class="foo" id="bar"
-         * @return type
+         * Get the attribute string for the field e.g. class="foo" id="bar".
+         *
+         * @return string
          */
         public function getAttributeString()
         {
@@ -185,9 +214,10 @@ namespace ClosureForm {
         }
 
         /**
-         * Get the value of a single attribute
-         * @param type $name
-         * @return type
+         * Get the value of a single attribute.
+         *
+         * @param string $name
+         * @return string
          */
         public function getAttribute($name)
         {
@@ -195,7 +225,8 @@ namespace ClosureForm {
         }
 
         /**
-         * Get attribute value and remove from attribute array
+         * Get attribute value and remove from attribute array.
+         *
          * @param string $name
          * @return mixed
          */
@@ -212,6 +243,7 @@ namespace ClosureForm {
 
         /**
          * Test the field against its validators.
+         *
          * @return boolean
          */
         public function isValid()
@@ -241,7 +273,8 @@ namespace ClosureForm {
         }
 
         /**
-         * Get an array of errors or empty array if non were found
+         * Get an array of errors or empty array if non were found.
+         *
          * @return array
          */
         public function getErrors()
@@ -251,6 +284,7 @@ namespace ClosureForm {
 
         /**
          * Add an error to the field.
+         *
          * @param string $error
          * @return \ClosureForm\FieldProxy
          */
@@ -260,7 +294,8 @@ namespace ClosureForm {
         }
 
         /**
-         * Render the field using the field template (and error template)
+         * Render the field and return it as a string.
+         *
          * @return string
          */
         public function render()

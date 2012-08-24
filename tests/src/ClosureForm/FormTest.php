@@ -38,7 +38,7 @@ class FormTest extends \PHPUnit_Framework_TestCase {
      */
     public function testTextFieldReturnsProxy()
     {
-        $this->assertTrue($this->_form->addTextField('text-field-1') instanceof \ClosureForm\FieldProxy);
+        $this->assertTrue($this->_form->addTextField('text-field-1') instanceof \ClosureForm\Element\FieldProxy);
     }
 
    /**
@@ -96,7 +96,7 @@ class FormTest extends \PHPUnit_Framework_TestCase {
     public function testGetFieldReturnsProxy()
     {
         $this->_form->addTextField('text-field-1');
-        $this->assertTrue($this->_form->getField('text-field-1') instanceof \ClosureForm\FieldProxy);
+        $this->assertTrue($this->_form->getField('text-field-1') instanceof \ClosureForm\Element\FieldProxy);
     }
 
     /**
@@ -117,7 +117,7 @@ class FormTest extends \PHPUnit_Framework_TestCase {
         $fields = $this->_form->getFields();
 
         $this->assertTrue(is_array($fields));
-        $this->assertTrue($fields['test-field'] instanceof \ClosureForm\FieldProxy);
+        $this->assertTrue($fields['test-field'] instanceof \ClosureForm\Element\FieldProxy);
     }
 
     /**

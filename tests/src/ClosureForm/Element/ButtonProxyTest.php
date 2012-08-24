@@ -1,5 +1,5 @@
 <?php
-namespace ClosureForm\Test;
+namespace ClosureForm\Element\Test;
 
 class ButtonProxyTest extends \PHPUnit_Framework_TestCase {
 
@@ -15,7 +15,7 @@ class ButtonProxyTest extends \PHPUnit_Framework_TestCase {
 
     protected function _getTestButton()
     {
-        return new \ClosureForm\ButtonProxy($this->_getMockForm(), 'test-button');
+        return new \ClosureForm\Element\ButtonProxy($this->_getMockForm(), 'test-button');
     }
 
     /**
@@ -54,7 +54,7 @@ class ButtonProxyTest extends \PHPUnit_Framework_TestCase {
              ->method('isSubmitted')
              ->will($this->returnValue(TRUE));
 
-        $button = new \ClosureForm\ButtonProxy($stub, 'test-button');
+        $button = new \ClosureForm\Element\ButtonProxy($stub, 'test-button');
         $button->trigger();
     }
 
@@ -75,7 +75,7 @@ class ButtonProxyTest extends \PHPUnit_Framework_TestCase {
 
         $callCount = 0;
 
-        $button = new \ClosureForm\ButtonProxy($stub, 'test-button');
+        $button = new \ClosureForm\Element\ButtonProxy($stub, 'test-button');
         $button->action(function($button) use (&$callCount) {
             $callCount++;
         });
