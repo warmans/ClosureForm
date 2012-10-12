@@ -1,0 +1,20 @@
+{
+    "name": "warmans/closureform",
+    "type": "library",
+    "description": "Simple library for generating and processing HTML forms.",
+    "keywords": ["form", "HTML"],
+    "homepage": "https://github.com/warmans/ClosureForm",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Stefan Warman",
+            "email": "stefan.warman@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "psr-0": { "ClosureForm": "src/" }
+    }
+}
