@@ -79,7 +79,7 @@ namespace ClosureForm\Element {
          * Override the template for the field.
          *
          * @param \Closure $template
-         * @return \ClosureForm\FieldProxy
+         * @return \ClosureForm\Element\FieldProxy
          */
         public function template(\Closure $template)
         {
@@ -91,7 +91,7 @@ namespace ClosureForm\Element {
          * Override error template for the field.
          *
          * @param \Closure $template
-         * @return \ClosureForm\FieldProxy
+         * @return \ClosureForm\Element\FieldProxy
          */
         public function errorTemplate(\Closure $template)
         {
@@ -103,7 +103,7 @@ namespace ClosureForm\Element {
          * Set multiple attributes at once. Attributes are rendered in the format of key="value"
          *
          * @param array $attributes
-         * @return \ClosureForm\FieldProxy
+         * @return \ClosureForm\Element\FieldProxy
          */
         public function attributes(array $attributes=array())
         {
@@ -116,7 +116,7 @@ namespace ClosureForm\Element {
          *
          * @param string $name
          * @param string $value
-         * @return \ClosureForm\FieldProxy
+         * @return \ClosureForm\Element\FieldProxy
          */
         public function attribute($name, $value){
             $this->_attributes[$name] = $value;
@@ -127,7 +127,7 @@ namespace ClosureForm\Element {
          * Set the label for the field
          *
          * @param string $label
-         * @return \ClosureForm\FieldProxy
+         * @return \ClosureForm\Element\FieldProxy
          */
         public function label($label)
         {
@@ -140,7 +140,7 @@ namespace ClosureForm\Element {
          * Returning anything else (e.g. NULL, TRUE, 0, 1) will not invalidate the field.
          *
          * @param \Closure $validator
-         * @return \ClosureForm\FieldProxy
+         * @return \ClosureForm\Element\FieldProxy
          */
         public function validator(\Closure $validator)
         {
@@ -286,7 +286,7 @@ namespace ClosureForm\Element {
          * Add an error to the field.
          *
          * @param string $error
-         * @return \ClosureForm\FieldProxy
+         * @return \ClosureForm\Element\FieldProxy
          */
         public function addError($error){
             $this->_errors[] = $error;

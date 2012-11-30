@@ -85,6 +85,30 @@ namespace ClosureForm\Element {
         }
 
         /**
+         * Set multiple attributes at once. Attributes are rendered in the format of key="value"
+         *
+         * @param array $attributes
+         * @return \ClosureForm\Element\ButtonProxy
+         */
+        public function attributes(array $attributes=array())
+        {
+            $this->_attributes = $attributes;
+            return $this;
+        }
+
+        /**
+         * Set the value of a specific attribute
+         *
+         * @param string $name
+         * @param string $value
+         * @return \ClosureForm\Element\ButtonProxy
+         */
+        public function attribute($name, $value){
+            $this->_attributes[$name] = $value;
+            return $this;
+        }
+
+        /**
          * Get the attribute array of the button as a string.
          *
          * @return string
@@ -114,7 +138,7 @@ namespace ClosureForm\Element {
 
         /**
          * Render the button and return as a string.
-         * 
+         *
          * @return string
          */
         public function render()

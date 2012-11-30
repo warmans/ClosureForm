@@ -329,7 +329,7 @@ ClosureForm\Element
 >    
 >    >    Override the template for the field.
 >    
->    `Return : \ClosureForm\FieldProxy `
+>    `Return : \ClosureForm\Element\FieldProxy `
 >    
 >    
 >    
@@ -340,7 +340,7 @@ ClosureForm\Element
 >    
 >    >    Override error template for the field.
 >    
->    `Return : \ClosureForm\FieldProxy `
+>    `Return : \ClosureForm\Element\FieldProxy `
 >    
 >    
 >    
@@ -351,7 +351,7 @@ ClosureForm\Element
 >    
 >    >    Set multiple attributes at once. Attributes are rendered in the format of key="value"
 >    
->    `Return : \ClosureForm\FieldProxy `
+>    `Return : \ClosureForm\Element\FieldProxy `
 >    
 >    
 >    
@@ -362,7 +362,7 @@ ClosureForm\Element
 >    
 >    >    Set the value of a specific attribute
 >    
->    `Return : \ClosureForm\FieldProxy `
+>    `Return : \ClosureForm\Element\FieldProxy `
 >    
 >    
 >    
@@ -373,7 +373,7 @@ ClosureForm\Element
 >    
 >    >    Set the label for the field
 >    
->    `Return : \ClosureForm\FieldProxy `
+>    `Return : \ClosureForm\Element\FieldProxy `
 >    
 >    
 >    
@@ -385,7 +385,7 @@ ClosureForm\Element
 >    >    Valdate the field using the supplied function. Returning an error message or FALSE will invalidate the field.
 >    >    Returning anything else (e.g. NULL, TRUE, 0, 1) will not invalidate the field.
 >    
->    `Return : \ClosureForm\FieldProxy `
+>    `Return : \ClosureForm\Element\FieldProxy `
 >    
 >    
 >    
@@ -496,7 +496,7 @@ ClosureForm\Element
 >    
 >    >    Add an error to the field.
 >    
->    `Return : \ClosureForm\FieldProxy `
+>    `Return : \ClosureForm\Element\FieldProxy `
 >    
 >    
 >    
@@ -585,6 +585,28 @@ ClosureForm\Element
 >    >    Get the label value (the text shown on the button)
 >    
 >    `Return : string `
+>    
+>    
+>    
+>    -----------------
+>    
+>    <pre>`public` **attributes**( [array $attributes] )</pre>
+>    
+>    
+>    >    Set multiple attributes at once. Attributes are rendered in the format of key="value"
+>    
+>    `Return : \ClosureForm\Element\ButtonProxy `
+>    
+>    
+>    
+>    -----------------
+>    
+>    <pre>`public` **attribute**( string $name, string $value )</pre>
+>    
+>    
+>    >    Set the value of a specific attribute
+>    
+>    `Return : \ClosureForm\Element\ButtonProxy `
 >    
 >    
 >    
