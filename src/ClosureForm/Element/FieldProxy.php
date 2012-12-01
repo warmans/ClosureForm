@@ -253,6 +253,11 @@ namespace ClosureForm\Element {
                 return TRUE;
             }
 
+            //an error was added somewhere manually. Possibly after initial validation so we must also check it.
+            if(count($this->getErrors())){
+                $this->_valid = FALSE;
+            }
+
             //don't re-run validation or duplicate errors will be created
             if($this->_valid !== NULL)
             {
@@ -268,11 +273,6 @@ namespace ClosureForm\Element {
                     $this->_errors[] = ($error) ?: 'Value was invalid';
                     $this->_valid = FALSE;
                 }
-            }
-
-            //an error was added somewhere manually
-            if(count($this->getErrors())){
-                $this->_valid = FALSE;
             }
 
             return $this->_valid;
