@@ -109,7 +109,7 @@ namespace ClosureForm {
             }
         }
 
-        private function _getDefaultRowTemplate()
+        protected function _getDefaultRowTemplate()
         {
             return function(Element\FieldProxy $field)
             {
