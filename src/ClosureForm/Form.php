@@ -237,8 +237,10 @@ namespace ClosureForm {
          */
         public function addSelectField($name, array $keyVals)
         {
+            $fieldProxyClass = $this->_getFieldProxyClass();
+
             $form = $this;
-            $field = new Element\FieldProxy($this, $name, 'select');
+            $field = new $fieldProxyClass($this, $name, 'select');
             $field->template(
                 function(Element\FieldProxy $field) use ($keyVals, $form){
                     $output = array();
@@ -265,7 +267,9 @@ namespace ClosureForm {
          */
         public function addInputField($type, $name)
         {
-            $field = new Element\FieldProxy($this, $name, $type);
+            $fieldProxyClass = $this->_getFieldProxyClass();
+
+            $field = new $fieldProxyClass($this, $name, $type);
             $field->template(
                 function(Element\FieldProxy $field) use ($type)
                 {
@@ -285,7 +289,9 @@ namespace ClosureForm {
          */
         public function addTextareaField($name)
         {
-            $field = new Element\FieldProxy($this, $name, 'textarea');
+            $fieldProxyClass = $this->_getFieldProxyClass();
+
+            $field = new $fieldProxyClass($this, $name, 'textarea');
             $field->template(
                 function(Element\FieldProxy $field){
                     $value = $field->extractAttribute('value');
@@ -293,6 +299,11 @@ namespace ClosureForm {
                 }
             );
             return $this->_addField($name, $field);
+        }
+
+        protected function _getFieldProxyClass()
+        {
+            return "ClosureForm\\Element\\FieldProxy";
         }
 
         protected function _addField($name, Element\FieldProxy $field)
