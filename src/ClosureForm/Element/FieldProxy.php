@@ -269,6 +269,12 @@ namespace ClosureForm\Element {
                     $this->_valid = FALSE;
                 }
             }
+
+            //an error was added somewhere manually
+            if(count($this->getErrors())){
+                $this->_valid = FALSE;
+            }
+
             return $this->_valid;
         }
 
