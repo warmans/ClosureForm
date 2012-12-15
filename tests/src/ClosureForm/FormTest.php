@@ -385,7 +385,7 @@ class FormTest extends \PHPUnit_Framework_TestCase {
     */
     public function testAddButtonWithNoName()
     {
-        $this->_form->addButton();
+        $this->_form->addButton('');
     }
 
     /**
