@@ -274,7 +274,7 @@ namespace ClosureForm {
             $field->template(
                 function(Element\FieldProxy $field) use ($type)
                 {
-                    $label = ($type == 'hidden' || !$this->getLabel()) ? '' : '<label for="'.$field->getName().'">'.$field->getLabel().'</label>';
+                    $label = ($type == 'hidden' || !$field->getLabel()) ? '' : '<label for="'.$field->getName().'">'.$field->getLabel().'</label>';
                     return $label.'<input type="'.$type.'" id="'.$field->getName().'" name="'.$field->getName().'" '.$field->getAttributeString().'/>';
                 }
             );
