@@ -245,7 +245,8 @@ namespace ClosureForm {
                 function(Element\FieldProxy $field) use ($keyVals, $form){
                     $output = array();
                     $value = ($form->isSubmitted()) ? $field->getSubmittedValue() : $field->extractAttribute('value');
-                    $output[] = '<label for="'.$field->getName().'">'.$field->getLabel().'</label><select id="'.$field->getName().'" name="'.$field->getName().'" '.$field->getAttributeString().'>';
+                    $output[] = $field->getLabel() ? '<label for="'.$field->getName().'">'.$field->getLabel().'</label>' : '';
+                    $output[] = '<select id="'.$field->getName().'" name="'.$field->getName().'" '.$field->getAttributeString().'>';
                     foreach($keyVals as $submitValue=>$displayValue)
                     {
                         $selected = ($value == $submitValue) ? 'selected="selected"' : '';
@@ -273,7 +274,7 @@ namespace ClosureForm {
             $field->template(
                 function(Element\FieldProxy $field) use ($type)
                 {
-                    $label = ($type == 'hidden') ? '' : '<label for="'.$field->getName().'">'.$field->getLabel().'</label>';
+                    $label = ($type == 'hidden' || !$this->getLabel()) ? '' : '<label for="'.$field->getName().'">'.$field->getLabel().'</label>';
                     return $label.'<input type="'.$type.'" id="'.$field->getName().'" name="'.$field->getName().'" '.$field->getAttributeString().'/>';
                 }
             );
