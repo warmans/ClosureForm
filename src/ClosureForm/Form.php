@@ -117,12 +117,18 @@ namespace ClosureForm {
             };
         }
 
+        public function setRowTemplate(\Closure $template)
+        {
+            $this->_rowTemplate = $template;
+        }
+
         /**
          * Get the name of the form as defined in the constructor.
          *
          * @return string
          */
-        public function getName(){
+        public function getName()
+        {
             return $this->_name;
         }
 
