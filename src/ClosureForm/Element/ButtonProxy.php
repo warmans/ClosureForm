@@ -109,6 +109,17 @@ namespace ClosureForm\Element {
         }
 
         /**
+         * Get the value of a single attribute.
+         *
+         * @param string $name
+         * @return string
+         */
+        public function getAttribute($name)
+        {
+            return (isset($this->_attributes[$name])) ? $this->_attributes[$name] : NULL;
+        }
+
+        /**
          * Get the attribute array of the button as a string.
          *
          * @return string
